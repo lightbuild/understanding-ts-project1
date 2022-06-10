@@ -39,8 +39,6 @@ class ProjectState extends State<Project>{
     return this.instance;
   }
 
-
-
   addProject(title: string, description: string, numOfPeople: number): void {
     const newProject = new Project(
       Math.random().toString(),
@@ -111,7 +109,6 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
   templateElement: HTMLTemplateElement;
   hostElement: T;
   element: U;
-
   protected constructor(templatedId: string,
                         hostElementId: string,
                         insertAtStart: boolean,
@@ -129,22 +126,46 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
     this.attach(insertAtStart);
   }
 
-  private attach(insertAtBeginning:boolean) {
+  private attach(insertAtBeginning: boolean) {
     this.hostElement.insertAdjacentElement(
-      insertAtBeginning ? 'afterbegin':'beforeend',
+      insertAtBeginning ? 'afterbegin' : 'beforeend',
       this.element
     );
   }
+
   abstract configure(): void;
-  abstract renderContent():void;
+
+  abstract renderContent(): void;
+}
+
+//projectItem Class
+class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
+  private project: Project;
+
+  constructor(hostId: string, project: Project) {
+    super('single-project', hostId, false, project.id);
+    this.project = project;
+
+    this.configure();
+    this.renderContent();
+  }
+
+  configure() {
+  }
+
+  renderContent() {
+    this.element.querySelector('h2')!.textContent = this.project.title;
+    this.element.querySelector('h3')!.textContent = this.project.people.toString();
+    this.element.querySelector('p')!.textContent = this.project.description
+  }
 }
 
 //projectList Class
-class ProjectList extends Component<HTMLDivElement,HTMLElement>{
+class ProjectList extends Component<HTMLDivElement, HTMLElement> {
   assignedProjects: Project[] = [];
 
   constructor(private type: 'active' | 'finished') {
-    super('project-list','app',false,`${type}-projects`);
+    super('project-list', 'app', false, `${type}-projects`);
     this.configure();
     this.renderContent();
   }
@@ -159,20 +180,20 @@ class ProjectList extends Component<HTMLDivElement,HTMLElement>{
       this.renderProjects();
     });
   }
-  private renderProjects() {
-    const listEl = document.getElementById(`${this.type}-projects-list`)! as HTMLUListElement;
-    listEl.innerHTML = '';
-    for (const prjItem of this.assignedProjects) {
-      const listItem = document.createElement('li');
-      listItem.textContent = prjItem.title;
-      listEl.appendChild(listItem);
-    }
-  }
-
   renderContent() {
     this.element.querySelector('ul')!.id = `${this.type}-projects-list`;
     this.element.querySelector('h2')!.textContent = this.type.toUpperCase() + ' PROJECTS';
   }
+
+  private renderProjects() {
+    const listEl = document.getElementById(`${this.type}-projects-list`)! as HTMLUListElement;
+    listEl.innerHTML = '';
+    for (const prjItem of this.assignedProjects) {
+      new ProjectItem(this.element.querySelector('ul')!.id,prjItem)
+    }
+  }
+
+
 }
 
 //ProjectInput Class
